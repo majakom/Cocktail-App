@@ -42,12 +42,16 @@ fun CocktailListScreen(onCocktailClick: (Cocktail) -> Unit) {
 
 @Composable
 fun CocktailListItem(cocktail: Cocktail, onCocktailClick: (Cocktail) -> Unit) {
-    Text(
-        text = cocktail.name,
-        fontSize = 20.sp,
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .clickable { onCocktailClick(cocktail) }
-    )
+    ) {
+        Text(
+            modifier = Modifier.padding(16.dp),
+            text = cocktail.name,
+            fontSize = 20.sp
+        )
+    }
 }
