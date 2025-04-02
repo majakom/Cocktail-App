@@ -125,7 +125,7 @@ fun CountdownTimer() {
             BasicTextField(
                 value = inputTime,
                 onValueChange = {
-                    inputTime = it.filter { c -> c.isDigit() }.take(3).ifEmpty { "0" }
+                    inputTime = it.filter { c -> c.isDigit() }.take(3).ifEmpty { "0" }.toInt().toString()
                     timeLeft = inputTime.toInt()
                 },
                 modifier = Modifier.width(48.dp),
