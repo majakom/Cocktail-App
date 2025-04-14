@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cocktail_app.ui.theme.Cocktail_appTheme
@@ -117,7 +118,14 @@ fun CocktailTitle(name: String) {
             text = name,
             fontSize = 48.sp,
             color = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 12.dp)
+                .fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            lineHeight = 52.sp,
+            softWrap = true,
+            maxLines = 2,
+            overflow = TextOverflow.Clip
         )
     }
 }
@@ -179,7 +187,7 @@ fun CountdownTimer() {
                     timeLeft = inputTime.toInt()
                 },
                 modifier = Modifier.width(48.dp),
-                textStyle = TextStyle(fontSize = 28.sp, textAlign = TextAlign.Center)
+                textStyle = TextStyle(fontSize = 28.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onBackground)
             )
             Text(text = " s", fontSize = 28.sp)
         }

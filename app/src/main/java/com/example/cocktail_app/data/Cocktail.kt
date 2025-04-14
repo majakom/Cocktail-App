@@ -26,6 +26,6 @@ val cocktails = listOf(
     Cocktail("Tropikalny Koktajl", R.drawable.tropikalny_koktajl, listOf("Sok pomarańczowy", "Sok ananasowy", "Grenadyna"), "Wlej składniki warstwowo i podawaj schłodzone.", false),
     Cocktail("Smoothie Truskawkowe", R.drawable.smoothie_truskawkowe, listOf("Truskawki", "Jogurt", "Miód", "Mleko"), "Zmiksuj wszystkie składniki na gładką masę.", false),
     Cocktail("Lemoniada Ogórkowa", R.drawable.lemoniada_ogorkowa, listOf("Cytryna", "Ogórek", "Woda", "Miód"), "Zmiksuj składniki i podawaj z lodem.", false),
-    Cocktail("Iced Tea Brzoskwiniowa", R.drawable.iced_tea_brzoskwiniowa, listOf("Herbata", "Syrop brzoskwiniowy", "Lód", "Cytryna"), "Wymieszaj i podawaj schłodzone.", false),
+    Cocktail("Iced Tea", R.drawable.iced_tea_brzoskwiniowa, listOf("Herbata", "Syrop brzoskwiniowy", "Lód", "Cytryna"), "Wymieszaj i podawaj schłodzone.", false),
     Cocktail("Mango Lassi", R.drawable.mango_lassi, listOf("Mango", "Jogurt", "Mleko", "Cukier", "Kardamon"), "Zmiksuj wszystko do uzyskania gładkiej konsystencji.", false)
 )
