@@ -1,20 +1,44 @@
 package com.example.cocktail_app
 
+import android.app.Activity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -24,12 +48,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cocktail_app.ui.theme.Cocktail_appTheme
@@ -45,17 +72,24 @@ class CocktailDetailActivity : ComponentActivity() {
         val imageResId = intent.getIntExtra("imageResId", 0)
         setContent {
             Cocktail_appTheme {
-                CocktailDetailScreen(name, ingredients, preparation, imageResId)
+                CocktailDetailScreen(name, ingredients, preparation, imageResId, false)
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CocktailDetailScreen(name: String, ingredients: String, preparation: String, imageResId: Int) {
+fun CocktailDetailScreen(name: String, ingredients: String, preparation: String, imageResId: Int, isTablet: Boolean) {
     val context = LocalContext.current
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            CocktailDetailTopBar(name, imageResId, isTablet, scrollBehavior)
+
+        },
         floatingActionButton = {
             SendSmsFab {
                 Toast
@@ -70,7 +104,6 @@ fun CocktailDetailScreen(name: String, ingredients: String, preparation: String,
                 .padding(16.dp)
                 .fillMaxSize()
         ) {
-            item { CocktailImage(name, imageResId) }
             item { CocktailTitle(name) }
             item { SectionDivider() }
             item { IngredientsSection(ingredients) }
@@ -79,6 +112,66 @@ fun CocktailDetailScreen(name: String, ingredients: String, preparation: String,
             item { SectionDivider() }
             item { CountdownTimer() }
         }
+    }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CocktailDetailTopBar(
+    name: String,
+    imageResId: Int,
+    isTablet: Boolean,
+    scrollBehavior: TopAppBarScrollBehavior
+) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    val imageHeight by animateDpAsState(
+        targetValue = 250.dp * (1f - scrollBehavior.state.collapsedFraction),
+        animationSpec = tween(durationMillis = 300),
+        label = "imageHeight"
+    )
+
+    Box {
+        CocktailImage(name, imageResId, imageHeight)
+        LargeTopAppBar(
+            title = {
+                if (scrollBehavior.state.collapsedFraction >= 1f) {
+                    Text(
+                        text = "Szczegóły koktajlu",
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            },
+            navigationIcon = {
+                if (!isTablet)
+                {
+                    if (scrollBehavior.state.collapsedFraction >= 1f) {
+                        IconButton(onClick = { activity?.finish() }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = { activity?.finish() }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            },
+            scrollBehavior = scrollBehavior,
+            colors = TopAppBarDefaults.largeTopAppBarColors(
+                containerColor = Color.Transparent,
+                scrolledContainerColor = MaterialTheme.colorScheme.primary
+            )
+        )
     }
 }
 
@@ -91,16 +184,17 @@ fun SendSmsFab(onClick: () -> Unit) {
         )
     }
 }
+
 @Composable
-fun CocktailImage(name: String, imageResId: Int) {
+fun CocktailImage(name: String, imageResId: Int, imageHeight: Dp) {
     Image(
         painter = painterResource(id = imageResId),
         contentDescription = name,
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp)
+            .height(imageHeight)
             .padding(bottom = 16.dp),
-        contentScale = ContentScale.Fit
+        contentScale = ContentScale.Fit,
     )
 }
 
