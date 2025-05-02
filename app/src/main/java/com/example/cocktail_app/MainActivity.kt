@@ -1,27 +1,64 @@
 package com.example.cocktail_app
 
+import android.animation.ObjectAnimator
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
+import android.view.animation.CycleInterpolator
+import android.widget.ImageView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -30,11 +67,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.cocktail_app.data.Cocktail
 import com.example.cocktail_app.data.cocktails
 import com.example.cocktail_app.ui.theme.Cocktail_appTheme
+import kotlinx.coroutines.launch
+import kotlin.math.sqrt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -226,9 +265,7 @@ fun CocktailListScreen(
 ) {
     val tabs = listOf("Strona tytułowa", "Drinki z alkoholem", "Drinki bezalkoholowe")
 
-    Column(
-        modifier = modifier.fillMaxSize()
-    ) {
+    Column(modifier = modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = selectedTab) {
             tabs.forEachIndexed { index, title ->
                 Tab(
@@ -255,10 +292,7 @@ fun CocktailListScreen(
         ) {
             when (selectedTab) {
                 0 -> {
-                    Text(
-                        text = "Witaj w aplikacji koktajlowej!",
-                        fontSize = 24.sp
-                    )
+                    HomePageWithShakers()
                 }
                 1 -> {
                     val alcoholicDrinks = cocktails.filter { it.isAlcoholic }
@@ -267,6 +301,99 @@ fun CocktailListScreen(
                 2 -> {
                     val nonAlcoholicDrinks = cocktails.filter { !it.isAlcoholic }
                     CocktailGrid(nonAlcoholicDrinks, onCocktailClick)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HomePageWithShakers(){
+    val context = LocalContext.current
+
+    // Track shake
+    val shakeTrigger = remember { mutableStateOf(false) }
+
+    // Shake detection setup
+    DisposableEffect(Unit) {
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        val shakeListener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent?) {
+                event?.let {
+                    val x = it.values[0]
+                    val y = it.values[1]
+                    val magnitude = sqrt(x * x + y * y)
+                    if (magnitude > 10) {
+                        shakeTrigger.value = true
+                    }
+                }
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+
+        sensorManager.registerListener(shakeListener, accelerometer, SensorManager.SENSOR_DELAY_UI)
+
+        onDispose {
+            sensorManager.unregisterListener(shakeListener)
+        }
+    }
+
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Centered title
+            Text(
+                text = "Witaj w aplikacji koktajlowej!",
+                fontSize = 24.sp,
+                modifier = Modifier.align(Alignment.Center)
+            )
+
+            val shaker1 = remember { mutableStateOf<ImageView?>(null) }
+            val shaker2 = remember { mutableStateOf<ImageView?>(null) }
+
+            AndroidView(
+                factory = {
+                    ImageView(it).apply {
+                        setImageResource(R.drawable.shaker)
+                        rotation = -45f
+                        shaker1.value = this
+                    }
+                },
+                modifier = Modifier
+                    .size(160.dp)
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            )
+
+            // Bottom-left shaker
+            AndroidView(
+                factory = {
+                    ImageView(it).apply {
+                        setImageResource(R.drawable.shaker)
+                        rotation = 45f
+                        shaker2.value = this
+                    }
+                },
+                modifier = Modifier
+                    .size(160.dp)
+                    .align(Alignment.BottomStart)
+                    .padding(16.dp)
+            )
+
+            // Shake animation
+            LaunchedEffect(shakeTrigger.value) {
+                if (shakeTrigger.value) {
+                    listOf(shaker1.value, shaker2.value).forEach { shaker ->
+                        shaker?.let {
+                            ObjectAnimator.ofFloat(it, "translationY", 0f, 25f).apply {
+                                duration = 500
+                                interpolator = CycleInterpolator(5f)
+                            }.start()
+                        }
+                    }
+                    shakeTrigger.value = false
                 }
             }
         }
