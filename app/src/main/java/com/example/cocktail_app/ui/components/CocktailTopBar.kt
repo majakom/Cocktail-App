@@ -1,7 +1,6 @@
 package com.example.cocktail_app.ui.components
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -17,7 +16,6 @@ import androidx.compose.runtime.Composable
 @Composable
 fun CocktailTopBar(
     title: String,
-    onBackClick: (() -> Unit)? = null,
     onMenuClick: (() -> Unit)? = null
 ) {
     TopAppBar(
@@ -28,15 +26,6 @@ fun CocktailTopBar(
         ),
         navigationIcon = {
             when {
-                onBackClick != null -> {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Cofnij",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
                 onMenuClick != null -> {
                     IconButton(onClick = onMenuClick) {
                         Icon(
